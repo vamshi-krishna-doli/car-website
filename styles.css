@@ -1,0 +1,1291 @@
+/* ==========================================================================
+   NOCTIS — DESIGN TOKENS & SYSTEM
+   ========================================================================== */
+:root {
+  /* Color Palette - Strict Flat Solids */
+  --asphalt: #07080A;
+  --graphite: #121418;
+  --fog: #8A8F98;
+  --bone: #EDEAE4;
+  --xenon: #CFE3FF;
+  --taillight: #E1251B;
+  --hairline: rgba(237, 234, 228, 0.12);
+  --hairline-bright: rgba(237, 234, 228, 0.28);
+
+  /* Typography */
+  --font-display: 'Archivo', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-hud: 'JetBrains Mono', monospace;
+
+  /* Motion Timing & Easing */
+  --ease-noctis: cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-normal: 0.7s var(--ease-noctis);
+  --transition-fast: 0.25s var(--ease-noctis);
+  --transition-reveal: 0.9s var(--ease-noctis);
+}
+
+/* ==========================================================================
+   RESET & BASE STYLES
+   ========================================================================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  background-color: var(--asphalt);
+  color: var(--bone);
+  scroll-behavior: smooth;
+  overflow-x: clip; /* Do NOT use overflow: hidden here, it breaks sticky */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--bone);
+  background-color: var(--asphalt);
+  overflow-x: clip;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Hide native cursor only when fine pointer is active */
+@media (pointer: fine) {
+  body:not(.reduce-motion) {
+    cursor: none;
+  }
+  body:not(.reduce-motion) a,
+  body:not(.reduce-motion) button,
+  body:not(.reduce-motion) [role="tab"] {
+    cursor: none;
+  }
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* Typography Classes */
+.display-title {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: clamp(38px, 6.5vw, 110px);
+  line-height: 0.95;
+}
+
+.mono-hud {
+  font-family: var(--font-hud);
+  font-size: 11px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.section-eyebrow {
+  display: inline-block;
+  color: var(--fog);
+  margin-bottom: 1.5rem;
+}
+
+/* Reveal Masks for Headlines */
+.reveal-wrap {
+  overflow: hidden;
+  display: block;
+}
+
+.reveal-line {
+  display: block;
+  transform: translateY(105%);
+  transition: transform var(--transition-reveal);
+  will-change: transform;
+}
+
+.reveal-wrap.is-revealed .reveal-line,
+.active .reveal-wrap .reveal-line {
+  transform: translateY(0);
+}
+
+/* ==========================================================================
+   PRELOADER
+   ========================================================================== */
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background-color: var(--asphalt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.8s var(--ease-noctis), visibility 0.8s;
+}
+
+body:not(.is-loading) .preloader {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.preloader-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 280px;
+}
+
+.preloader-wordmark {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 400;
+  font-size: 32px;
+  letter-spacing: 0.15em;
+  color: var(--bone);
+  margin-bottom: 2.5rem;
+}
+
+.preloader-bar-wrap {
+  width: 100%;
+  height: 1px;
+  background-color: var(--hairline);
+  position: relative;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.preloader-line {
+  height: 1px;
+  width: 0%;
+  background-color: var(--xenon);
+  transition: width 0.1s linear, background-color 0.2s;
+}
+
+.preloader.exiting .preloader-line {
+  background-color: #FFFFFF;
+}
+
+.preloader-counter {
+  font-family: var(--font-hud);
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  color: var(--fog);
+}
+
+/* ==========================================================================
+   FILM-GRAIN OVERLAY (Fixed Offscreen Noise)
+   ========================================================================== */
+.grain-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9990;
+  opacity: 0.035; /* 3.5% opacity as specified */
+}
+
+/* ==========================================================================
+   CUSTOM CURSOR ("The Headlight")
+   ========================================================================== */
+.custom-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  display: none;
+  align-items: center;
+}
+
+@media (pointer: fine) {
+  body:not(.reduce-motion) .custom-cursor {
+    display: flex;
+  }
+}
+
+.cursor-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  background-color: var(--xenon);
+  transform: translate(-50%, -50%);
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.cursor-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--xenon);
+  transform: translate(-50%, -50%);
+  transition: border-color 0.2s, opacity 0.2s, transform 0.2s;
+}
+
+/* Morphed state: 44x2px horizontal light bar */
+.cursor-bar {
+  display: none;
+  width: 44px;
+  height: 2px;
+  background-color: var(--xenon);
+  transition: background-color 0.12s, width 0.2s;
+}
+
+.cursor-label {
+  display: none;
+  font-family: var(--font-hud);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--xenon);
+  margin-left: 10px;
+  white-space: nowrap;
+}
+
+/* Hovering link/button state */
+.custom-cursor.is-hovering .cursor-dot,
+.custom-cursor.is-hovering .cursor-ring {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.5);
+}
+
+.custom-cursor.is-hovering .cursor-bar {
+  display: block;
+}
+
+.custom-cursor.is-hovering .cursor-label {
+  display: inline-block;
+}
+
+/* Mousedown flash: brighter for 120ms */
+.custom-cursor.is-down .cursor-bar,
+.custom-cursor.is-down .cursor-dot {
+  background-color: #FFFFFF;
+}
+.custom-cursor.is-down .cursor-ring {
+  border-color: #FFFFFF;
+}
+
+/* ==========================================================================
+   GLOBAL NAV (Fixed, mix-blend-mode: difference)
+   ========================================================================== */
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 3rem;
+  z-index: 1000;
+  background: transparent;
+  mix-blend-mode: difference;
+  transition: transform 0.4s var(--ease-noctis);
+}
+
+.site-header.is-hidden {
+  transform: translateY(-100%);
+}
+
+.nav-brand {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 400;
+  font-size: 20px;
+  letter-spacing: 0.12em;
+  color: var(--bone);
+}
+
+.nav-menu {
+  display: flex;
+  gap: 2.5rem;
+}
+
+.nav-link {
+  font-family: var(--font-hud);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--bone);
+  position: relative;
+  padding: 0.25rem 0;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0%;
+  height: 1px;
+  background-color: var(--xenon);
+  transition: width 0.3s var(--ease-noctis);
+}
+
+.nav-link:hover::after,
+.nav-link:focus-visible::after {
+  width: 100%;
+}
+
+/* ==========================================================================
+   PINNED SCROLLYTELLING SECTIONS (Hero & Dismantle)
+   ========================================================================== */
+.pinned-section {
+  position: relative;
+  width: 100%;
+}
+
+.hero-section {
+  min-height: 600vh;
+  height: 600vh;
+}
+
+.dismantle-section {
+  min-height: 350vh;
+  height: 350vh;
+}
+
+/* Sticky Stage div inside the tall wrapper */
+.sticky-stage {
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  background-color: var(--asphalt);
+}
+
+/* Canvas scrubbing surface */
+.sequence-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  background-color: var(--asphalt);
+}
+
+/* 1px Xenon Bottom Progress Line */
+.stage-progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: var(--hairline);
+  z-index: 20;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background-color: var(--xenon);
+  transition: width 0.05s linear;
+}
+
+/* ==========================================================================
+   HERO HUD (Left-Edge Mono Telemetry)
+   ========================================================================== */
+.hero-hud {
+  position: absolute;
+  left: 3rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  gap: 2.25rem;
+  pointer-events: none;
+}
+
+.hud-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.hud-chapter {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hud-tick {
+  width: 4px;
+  height: 4px;
+  background-color: var(--taillight);
+  display: inline-block;
+}
+
+.hud-label {
+  font-family: var(--font-hud);
+  font-size: 10px;
+  color: var(--fog);
+  letter-spacing: 0.12em;
+}
+
+.hud-value {
+  font-family: var(--font-hud);
+  font-size: 12px;
+  color: var(--bone);
+  letter-spacing: 0.12em;
+}
+
+.hud-unit {
+  color: var(--fog);
+  font-size: 10px;
+}
+
+/* ==========================================================================
+   HERO CHAPTER TEXT OVERLAYS
+   (Positioned in empty sky, never over the car)
+   ========================================================================== */
+.hero-chapters-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.hero-chapter {
+  position: absolute;
+  inset: 0;
+  padding: 6.5rem 3rem 4rem 12rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.6s var(--ease-noctis), visibility 0.6s;
+  pointer-events: none;
+}
+
+.hero-chapter.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.chapter-content {
+  max-width: 52ch;
+}
+
+.chapter-title {
+  color: var(--bone);
+  margin-bottom: 1.25rem;
+}
+
+.chapter-sub {
+  font-family: var(--font-body);
+  font-size: 17px;
+  color: var(--fog);
+  max-width: 40ch;
+  margin-bottom: 2.5rem;
+}
+
+.scroll-hint {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.hint-text {
+  font-size: 11px;
+  color: var(--fog);
+  letter-spacing: 0.15em;
+}
+
+.hint-line {
+  width: 48px;
+  height: 1px;
+  background-color: var(--xenon);
+  animation: pulse-line 2s infinite ease-in-out;
+}
+
+@keyframes pulse-line {
+  0%, 100% { opacity: 0.2; transform: scaleX(0.7); }
+  50% { opacity: 1; transform: scaleX(1); }
+}
+
+.chapter-specs {
+  font-size: 12px;
+  color: var(--fog);
+  letter-spacing: 0.12em;
+  margin-bottom: 2rem;
+}
+
+.text-link {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-hud);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: var(--xenon);
+  position: relative;
+  padding-bottom: 4px;
+}
+
+.text-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: var(--xenon);
+  transition: transform 0.3s var(--ease-noctis);
+  transform-origin: left;
+}
+
+.text-link:hover::after,
+.text-link:focus-visible::after {
+  transform: scaleX(0.6);
+}
+
+/* ==========================================================================
+   SECTION 2: STATEMENT (100vh, Word-by-Word Scrub)
+   ========================================================================== */
+.statement-section {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--asphalt);
+  padding: 0 4rem;
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+  z-index: 5;
+}
+
+.statement-container {
+  max-width: 1100px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.statement-quote {
+  font-size: clamp(34px, 5.5vw, 80px);
+  line-height: 1.15;
+  color: var(--bone);
+  text-transform: uppercase;
+}
+
+.statement-word {
+  display: inline-block;
+  opacity: 0.15; /* Default 15% opacity */
+  transition: opacity 0.15s linear;
+  margin-right: 0.22em;
+}
+
+/* ==========================================================================
+   SECTION 3: DISMANTLE (PINNED, 350vh)
+   ========================================================================== */
+.dismantle-header {
+  position: absolute;
+  top: 4.5rem;
+  left: 3rem;
+  z-index: 15;
+  pointer-events: none;
+}
+
+.dismantle-title {
+  font-size: clamp(32px, 5vw, 72px);
+  color: var(--bone);
+}
+
+.dismantle-callouts-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 15;
+}
+
+.callout-item {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s var(--ease-noctis), visibility 0.5s;
+  pointer-events: none;
+}
+
+.callout-item.is-visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.callout-dot {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background-color: var(--xenon);
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.callout-hairline {
+  position: absolute;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.callout-line {
+  stroke: var(--xenon);
+  stroke-width: 1px;
+  stroke-dasharray: 3 3;
+  opacity: 0.8;
+}
+
+.callout-card {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  white-space: nowrap;
+  background-color: var(--asphalt);
+  padding: 0.6rem 0.9rem;
+  border-left: 2px solid var(--xenon);
+  pointer-events: auto;
+  z-index: 3;
+}
+
+.callout-label {
+  font-size: 11px;
+  color: var(--xenon);
+  letter-spacing: 0.15em;
+}
+
+.callout-desc {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--bone);
+}
+
+/* ==========================================================================
+   SECTION 4: LINEUP ACCORDION (100vh)
+   ========================================================================== */
+.lineup-section {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+  background-color: var(--asphalt);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  border-bottom: 1px solid var(--hairline);
+  overflow: hidden;
+  z-index: 5;
+}
+
+.lineup-intro {
+  position: absolute;
+  top: 3.5rem;
+  left: 3rem;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.lineup-main-title {
+  font-size: clamp(28px, 4vw, 56px);
+  color: var(--bone);
+}
+
+.accordion-container {
+  display: flex;
+  width: 100%;
+  height: 75vh;
+  background-color: var(--asphalt);
+  border-top: 1px solid var(--hairline);
+}
+
+.accordion-slide {
+  position: relative;
+  flex: 1 1 12vw;
+  height: 100%;
+  border-right: 1px solid var(--hairline);
+  background-color: var(--asphalt);
+  transition: flex 0.7s var(--ease-noctis), transform 0.6s var(--ease-noctis), opacity 0.6s;
+  overflow: hidden;
+  outline: none;
+  display: flex;
+}
+
+.accordion-slide:last-child {
+  border-right: none;
+}
+
+.accordion-slide.is-active {
+  flex: 4 1 52vw;
+}
+
+/* Slide Closed View */
+.slide-closed-view {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 2.5rem 1.5rem;
+  opacity: 1;
+  transition: opacity 0.4s var(--ease-noctis);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.accordion-slide.is-active .slide-closed-view {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.slide-num {
+  font-size: 12px;
+  color: var(--fog);
+}
+
+.slide-vert-name {
+  font-size: 14px;
+  color: var(--bone);
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  letter-spacing: 0.2em;
+  margin-top: auto;
+  margin-bottom: 2rem;
+}
+
+.slide-thumb-wrap {
+  width: 100%;
+  height: 120px;
+  overflow: hidden;
+  position: relative;
+}
+
+.slide-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: right 40%;
+  filter: brightness(25%) grayscale(100%);
+  transition: filter 0.5s var(--ease-noctis);
+}
+
+/* Slide Open View */
+.slide-open-view {
+  position: absolute;
+  inset: 0;
+  padding: 3rem 4rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s var(--ease-noctis) 0.1s, visibility 0.5s;
+  z-index: 3;
+}
+
+.accordion-slide.is-active .slide-open-view {
+  opacity: 1;
+  visibility: visible;
+}
+
+.open-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.open-num {
+  font-size: 12px;
+  color: var(--fog);
+}
+
+.open-name {
+  font-size: clamp(38px, 6vw, 84px);
+  color: var(--bone);
+}
+
+/* Open Car Image: Sitting on shared floor line at 72% of slide height */
+.open-image-wrap {
+  position: absolute;
+  top: 15%;
+  left: 0;
+  width: 100%;
+  height: 60%;
+  display: flex;
+  align-items: flex-end;
+  pointer-events: none;
+}
+
+.open-car-image {
+  width: 70%;
+  max-width: 1100px;
+  height: auto;
+  object-fit: contain;
+  margin-left: 5%;
+  transform: translateX(-6%);
+  opacity: 0;
+  transition: transform 0.8s var(--ease-noctis), opacity 0.8s var(--ease-noctis);
+}
+
+.accordion-slide.is-active .open-car-image {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+/* Open Details Section */
+.open-details {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  z-index: 5;
+}
+
+.open-tagline {
+  font-size: 16px;
+  color: var(--fog);
+}
+
+.open-specs-grid {
+  display: flex;
+  gap: 3.5rem;
+}
+
+.spec-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.spec-label {
+  font-size: 10px;
+  color: var(--fog);
+  letter-spacing: 0.12em;
+}
+
+.spec-val {
+  font-size: 13px;
+  color: var(--bone);
+  letter-spacing: 0.08em;
+}
+
+.open-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--hairline);
+  padding-top: 1.25rem;
+}
+
+.swatches-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.swatch {
+  width: 12px;
+  height: 12px;
+  display: inline-block;
+  outline: 1px solid transparent;
+  outline-offset: 2px;
+  transition: outline-color 0.2s;
+}
+
+.swatch.is-active {
+  outline-color: var(--bone);
+}
+
+.configure-link {
+  font-size: 11px;
+  color: var(--xenon);
+  letter-spacing: 0.12em;
+}
+
+.configure-link:hover {
+  text-decoration: underline;
+}
+
+/* Initial Staggered Reveal of Slides on Scroll */
+.lineup-section .accordion-slide {
+  transform: translateY(40px);
+  opacity: 0;
+}
+
+.lineup-section.is-revealed .accordion-slide {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.lineup-section.is-revealed .accordion-slide:nth-child(1) { transition-delay: 0.00s; }
+.lineup-section.is-revealed .accordion-slide:nth-child(2) { transition-delay: 0.08s; }
+.lineup-section.is-revealed .accordion-slide:nth-child(3) { transition-delay: 0.16s; }
+.lineup-section.is-revealed .accordion-slide:nth-child(4) { transition-delay: 0.24s; }
+.lineup-section.is-revealed .accordion-slide:nth-child(5) { transition-delay: 0.32s; }
+
+/* Focus states for accordion slides */
+.accordion-slide:focus-visible {
+  outline: 1px solid var(--xenon);
+}
+
+/* ==========================================================================
+   SECTION 5: RESERVE (100vh)
+   ========================================================================== */
+.reserve-section {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+  background-color: var(--asphalt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3rem;
+  z-index: 5;
+}
+
+.reserve-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 760px;
+}
+
+.reserve-title {
+  margin-bottom: 1.5rem;
+  color: var(--bone);
+}
+
+.reserve-body {
+  font-size: 17px;
+  color: var(--fog);
+  max-width: 48ch;
+  margin-bottom: 3.5rem;
+}
+
+.reserve-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 1.25rem 2.5rem;
+  border: 1px solid var(--xenon);
+  background: transparent;
+  color: var(--xenon);
+  text-decoration: none;
+  transition: background-color 0.25s var(--ease-noctis), color 0.25s var(--ease-noctis), border-color 0.25s;
+  position: relative;
+}
+
+.reserve-tick {
+  width: 2px;
+  height: 12px;
+  background-color: var(--taillight);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.25s, transform 0.25s;
+}
+
+.reserve-btn-label {
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  color: inherit;
+}
+
+.reserve-btn:hover,
+.reserve-btn:focus-visible {
+  background-color: var(--xenon);
+  color: var(--asphalt);
+}
+
+.reserve-btn:hover .reserve-tick,
+.reserve-btn:focus-visible .reserve-tick {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ==========================================================================
+   FOOTER
+   ========================================================================== */
+.site-footer {
+  position: relative;
+  background-color: var(--asphalt);
+  border-top: 1px solid var(--hairline);
+  padding: 5rem 3rem 3rem;
+  z-index: 5;
+}
+
+.footer-top {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5rem;
+  flex-wrap: wrap;
+  gap: 3rem;
+}
+
+.footer-brand-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.footer-wordmark {
+  font-size: 28px;
+  color: var(--bone);
+}
+
+.footer-tagline {
+  font-size: 10px;
+  color: var(--fog);
+  letter-spacing: 0.15em;
+}
+
+.footer-links-grid {
+  display: flex;
+  gap: 5rem;
+  flex-wrap: wrap;
+}
+
+.footer-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.footer-col-title {
+  font-size: 11px;
+  color: var(--fog);
+  letter-spacing: 0.15em;
+}
+
+.footer-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.footer-link {
+  font-size: 11px;
+  color: var(--bone);
+  letter-spacing: 0.08em;
+  transition: color 0.2s;
+}
+
+.footer-link:hover,
+.footer-link:focus-visible {
+  color: var(--xenon);
+}
+
+.footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--hairline);
+  padding-top: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.footer-copy,
+.footer-legal {
+  font-size: 10px;
+  color: var(--fog);
+  letter-spacing: 0.12em;
+}
+
+/* ==========================================================================
+   MOBILE & RESPONSIVE RULES (< 768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .site-header {
+    padding: 0 1.5rem;
+    height: 60px;
+  }
+  .nav-menu {
+    gap: 1.25rem;
+  }
+
+  .hero-hud {
+    left: 1.5rem;
+    top: auto;
+    bottom: 2rem;
+    transform: none;
+    flex-direction: row;
+    gap: 1.5rem;
+  }
+  .hud-item {
+    gap: 0.15rem;
+  }
+
+  .hero-chapter {
+    padding: 5rem 1.5rem 6rem 1.5rem;
+  }
+  .chapter-title {
+    font-size: clamp(34px, 9vw, 54px);
+  }
+
+  .dismantle-header {
+    top: 3.5rem;
+    left: 1.5rem;
+  }
+
+  .callout-card {
+    padding: 0.35rem 0.5rem;
+  }
+  .callout-desc {
+    font-size: 12px;
+  }
+
+  /* Accordion mobile: stack vertically as 72px rows */
+  .lineup-section {
+    height: auto;
+    min-height: 100vh;
+    padding-top: 6rem;
+  }
+  .lineup-intro {
+    position: static;
+    padding: 0 1.5rem 2rem;
+  }
+  .accordion-container {
+    flex-direction: column;
+    height: auto;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .accordion-slide {
+    flex: none;
+    width: 100%;
+    min-height: 72px;
+    height: 72px;
+    border-right: none;
+    border-bottom: 1px solid var(--hairline);
+    transition: height 0.6s var(--ease-noctis);
+  }
+  .accordion-slide.is-active {
+    flex: none;
+    height: 520px;
+  }
+  .slide-closed-view {
+    flex-direction: row;
+    align-items: center;
+    padding: 0 1.5rem;
+    height: 72px;
+  }
+  .slide-vert-name {
+    writing-mode: horizontal-tb;
+    transform: none;
+    margin: 0;
+  }
+  .slide-thumb-wrap {
+    display: none;
+  }
+  .slide-open-view {
+    padding: 1.5rem;
+  }
+  .open-image-wrap {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 100%;
+    height: 200px;
+    margin: 1rem 0;
+  }
+  .open-car-image {
+    width: 90%;
+    margin: 0 auto;
+    transform: none;
+  }
+  .open-specs-grid {
+    gap: 1.5rem;
+  }
+
+  .statement-section {
+    padding: 0 1.5rem;
+  }
+  .statement-quote {
+    font-size: clamp(26px, 7vw, 44px);
+  }
+
+  .reserve-section {
+    padding: 0 1.5rem;
+  }
+
+  .site-footer {
+    padding: 3rem 1.5rem 2rem;
+  }
+  .footer-links-grid {
+    gap: 2.5rem;
+  }
+  .footer-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* ==========================================================================
+   ACCESSIBILITY: PREFERS-REDUCED-MOTION
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  body {
+    cursor: auto !important;
+  }
+
+  .custom-cursor {
+    display: none !important;
+  }
+
+  .reveal-line {
+    transform: none !important;
+  }
+
+  .hero-section,
+  .dismantle-section {
+    height: auto !important;
+  }
+
+  .sticky-stage {
+    position: relative !important;
+    height: 100vh !important;
+  }
+}
