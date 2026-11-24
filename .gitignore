@@ -1,5 +1,5 @@
-# Local raw extraction frames (site uses optimized WebP assets/ instead)
-frames/
+# Local raw extraction frames (matches root folder only)
+/frames/
 
 # System & editor files
 node_modules/
